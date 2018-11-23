@@ -22,9 +22,11 @@ public class SwiftSocketFlutterPlugin: NSObject, FlutterPlugin {
     //result("iOS " + UIDevice.current.systemVersion)
     if call.method == "socket" {
         do{
-            if let args = call.arguments as? [String: String],let url = args["url"] {
-                socketManager = SocketManager(socketURL: URL(string: url)!, config: [.log(true), .compress])
+            if let args = call.arguments as? [String: String],let url = args["url"], let token = args["token"] {
+                
+                socketManager = SocketManager(socketURL: URL(string: url)!, config: [.log(true), .compress, .connectParams(["token" : token])])
                 socket = socketManager!.defaultSocket
+                
                 result("created")
             }
             
@@ -33,23 +35,25 @@ public class SwiftSocketFlutterPlugin: NSObject, FlutterPlugin {
             print(error)
         }
     }else if call.method == "connect" {
+        
         if socket != nil {
             socket!.connect()
         }
     }else if call.method == "emit" {
         
         if let args = call.arguments as? [String: String], let message = args["message"],let topic = args["topic"]{
-            let data = message.data(using: .utf8)!
+            _ = message.data(using: .utf8)!
             do {
                 var dictonary:[String:AnyObject]?
                 
                 if let data = message.data(using: String.Encoding.utf8) {
                     
+//                    print(data)
                     do {
                         dictonary = try JSONSerialization.jsonObject(with: data, options: []) as? [String:AnyObject]
                         
                         socket!.emit(topic, dictonary!)
-                        result("sent")
+                        result("sent!!")
                     } catch let error as NSError {
                         print(error)
                     }
@@ -63,12 +67,13 @@ public class SwiftSocketFlutterPlugin: NSObject, FlutterPlugin {
     }else if call.method == "on" {
         if let args = call.arguments as? [String: String],let topic = args["topic"]{
             socket!.on(topic) {(data, ack) -> Void in
+
                 var dictonary:[String:Any] = [:];
-                print(data)
-                dictonary["message"] = data[0];
-                print(data[0])
+//                print(data)
+                dictonary["message"] = data;
+//                print(self.mChannel)
                 self.mChannel!.invokeMethod("received", arguments: dictonary)
-                result("sent")
+                result("message")
             }
         }
 

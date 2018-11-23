@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -22,20 +24,21 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    try {
-      SocketFlutterPlugin myIO = new SocketFlutterPlugin();
-      myIO.socket("http://10.2.2.22:9006");
-      myIO.connect();
-      String jsonData =
-              '{"content":"test"}';
-      myIO.emit("chat",jsonData);
-      myIO.on("chat",(data){
-        debugPrint(data.toString());
-      });
-    } on PlatformException {
-
-      _platformVersion = 'Failed to get platform version.';
-    }
+    print("hereee");
+    SocketFlutterPlugin myIO = new SocketFlutterPlugin();
+    Platform.isAndroid?myIO.socket(
+        "https://stream.automatic.com?token=481164f7a6121b43d1a3:3407c890676a0b0a6a2145f77503db4acd27bc24"):
+    myIO.socket(
+        "https://stream.automatic.com", "481164f7a6121b43d1a3:3407c890676a0b0a6a2145f77503db4acd27bc24");
+    myIO.connect();
+    String jsonData = '{"content":"test"}';
+    // myIO.emit("chat",jsonData);
+    myIO.on("ignition:on", (data) {
+      print("data in dart: ${data}");
+    });
+//    myIO.on("ignition:off", (data) {
+//      print(data);
+//    });
   }
 
   @override
@@ -45,9 +48,9 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: new Center(
-          child: new Text('Running on: $_platformVersion\n'),
-        ),
+        // body: new Center(
+        //   child: new Text('Running on: $_platformVersion\n'),
+        // ),
       ),
     );
   }
